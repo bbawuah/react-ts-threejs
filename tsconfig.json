@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "outDir": "./public/",
+    "rootDir": "./src",
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "target": "es6",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react",
+    "plugins": [{ "name": "@typescript-eslint/eslint-plugin-tslint" }]
+  }
+}
