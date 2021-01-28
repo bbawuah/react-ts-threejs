@@ -1,13 +1,33 @@
 import React, { Fragment, useRef, useState } from 'react'
 import { render } from 'react-dom'
-import { Canvas, MeshProps, useFrame } from 'react-three-fiber'
+import {
+  Canvas,
+  MeshProps,
+  useFrame,
+  useThree,
+  extend,
+  ReactThreeFiber
+} from 'react-three-fiber'
 import 'normalize.css/normalize.css'
 import './styles/styles.scss'
 import type { Mesh } from 'three'
-import { MeshWobbleMaterial, softShadows, OrbitControls } from 'drei'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { MeshWobbleMaterial, softShadows } from 'drei'
 import { useSpring, animated } from 'react-spring'
 
-// softShadows()
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      orbitControls: ReactThreeFiber.Object3DNode<
+        OrbitControls,
+        typeof OrbitControls
+      >
+    }
+  }
+}
+softShadows()
+
+extend({ OrbitControls })
 
 type Position = [x: number, y: number, z: number]
 type Width = [
@@ -24,6 +44,27 @@ interface Props {
   color: string
 }
 
+const Controls = () => {
+  const orbitRef = useRef()
+  const { camera, gl } = useThree()
+
+  // useFrame(() => {
+  //   if (orbitRef.current) {
+  //     orbitRef?.current?.update()
+  //   }
+  // })
+
+  return (
+    <orbitControls
+      enableZoom={false}
+      maxPolarAngle={Math.PI / 3}
+      minPolarAngle={Math.PI / 3}
+      ref={orbitRef}
+      args={[camera, gl.domElement]}
+    />
+  )
+}
+
 const SpinningMesh: React.FC<Props> = ({ position, args, color }) => {
   // This reference gives direct access to the mesh
   const mesh = useRef<Mesh>()
@@ -35,15 +76,20 @@ const SpinningMesh: React.FC<Props> = ({ position, args, color }) => {
   })
 
   return (
-    <mesh castShadow position={position} ref={mesh}>
-      <boxBufferGeometry args={args} />
-      <meshStandardMaterial attach="material" color={color} />
+    <mesh castShadow position={[position[0], 0, 0]} ref={mesh}>
+      <dodecahedronGeometry attach="geometry" args={[1, 0]} />
+      <MeshWobbleMaterial
+        attach="material"
+        color={color}
+        factor={1}
+        speed={14}
+      />
     </mesh>
   )
 }
 
 const App: React.FC<MeshProps> = () => {
-  const meshes = Array(5).fill('mesh')
+  const meshes = Array(1).fill('mesh')
   return (
     <Fragment>
       <Canvas
@@ -66,7 +112,6 @@ const App: React.FC<MeshProps> = () => {
         <ambientLight intensity={0.3} />
         <pointLight position={[-10, 0, -20]} intensity={0.5} />
         <pointLight position={[0, -10, -20]} intensity={1.5} />
-
         <group>
           <mesh
             receiveShadow
@@ -77,16 +122,17 @@ const App: React.FC<MeshProps> = () => {
             <shadowMaterial attach="material" opacity={0.3} />
           </mesh>
         </group>
-        {meshes.map(() => {
+        {meshes.map((_, index) => {
           return (
             <SpinningMesh
+              key={index}
               position={getPosition()}
               args={getArgs()}
               color={getColor()}
             />
           )
         })}
-        <OrbitControls />
+        <Controls />
       </Canvas>
     </Fragment>
   )
